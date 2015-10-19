@@ -331,7 +331,7 @@
                 enrage = me.FindSpell("ursa_enrage");
             }
 
-            if (!Game.IsKeyDown(Key.Space) || Game.IsChatOpen)
+            if (!Game.IsKeyDown(Key.E) || Game.IsChatOpen)
             {
                 target = null;
                 return;
