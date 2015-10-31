@@ -11,23 +11,29 @@
 
     internal class Orbwalker
     {
+        #region Constants
+
+        private const Key FarmKey = Key.,;
+
+        private const Key ChaseKey = Key.Z;
+
+        private const Key KiteKey = Key./;
+
+        #endregion
+
         #region Static Fields
+
+        private static Unit creepTarget;
+
+        private static float lastRange;
 
         private static bool loaded;
 
         private static Hero me;
 
-        private static Unit target;
-
-        private const Key ChaseKey = Key.Space;
-
-        private const Key KiteKey = Key.V;
-
-        private const Key FarmKey = Key.B;
-
         private static ParticleEffect rangeDisplay;
 
-        private static float lastRange;
+        private static Hero target;
 
         #endregion
 
@@ -73,7 +79,7 @@
                 rangeDisplay = null;
                 return;
             }
-                
+
             if (Game.IsPaused)
             {
                 return;
@@ -94,25 +100,31 @@
                     rangeDisplay = me.AddParticleEffect(@"particles\ui_mouseactions\range_display.vpcf");
                     rangeDisplay.SetControlPoint(1, new Vector3(lastRange, 0, 0));
                 }
-            } 
+            }
+            if (target != null && (!target.IsValid || !target.IsVisible || !target.IsAlive || target.Health <= 0))
+            {
+                target = null;
+            }
             var canCancel = Orbwalking.CanCancelAnimation();
             if (canCancel)
             {
-                if (target != null && !target.IsVisible && target is Hero)
+                if (target != null && !target.IsVisible && !Orbwalking.AttackOnCooldown(target))
                 {
-                    var closestToMouse = me.ClosestToMouseTarget(128);
-                    if (closestToMouse != null)
-                    {
-                        target = closestToMouse;
-                    }
+                    target = me.ClosestToMouseTarget(128);
                 }
-                else
+                else if (target == null || !Orbwalking.AttackOnCooldown(target))
                 {
                     var bestAa = me.BestAATarget();
                     if (bestAa != null)
                     {
                         target = me.BestAATarget();
                     }
+                }
+                if (Game.IsKeyDown(FarmKey)
+                    && (creepTarget == null || !creepTarget.IsValid || !creepTarget.IsVisible || !creepTarget.IsAlive || creepTarget.Health <= 0
+                         || !Orbwalking.AttackOnCooldown(creepTarget)))
+                {
+                    creepTarget = TargetSelector.GetLowestHPCreep(me);
                 }
             }
 
@@ -121,27 +133,20 @@
                 return;
             }
 
-            try
+            if (Game.IsKeyDown(FarmKey))
             {
-                if (Game.IsKeyDown(FarmKey))
-                {
-                    Orbwalking.Orbwalk(TargetSelector.GetLowestHPCreep(me));
-                }
-                if (Game.IsKeyDown(ChaseKey))
-                {
-                    Orbwalking.Orbwalk(target, attackmodifiers: true);
-                }
-                if (Game.IsKeyDown(KiteKey))
-                {
-                    Orbwalking.Orbwalk(
-                        target,
-                        attackmodifiers: true,
-                        bonusRange: (float)(UnitDatabase.GetAttackRate(me) * 1000));
-                }
+                Orbwalking.Orbwalk(creepTarget);
             }
-            catch (Exception)
+            if (Game.IsKeyDown(ChaseKey))
             {
-                //nopls
+                Orbwalking.Orbwalk(target, attackmodifiers: true);
+            }
+            if (Game.IsKeyDown(KiteKey))
+            {
+                Orbwalking.Orbwalk(
+                    target,
+                    attackmodifiers: true,
+                    bonusRange: (float)(UnitDatabase.GetAttackRate(me) * 1000));
             }
         }
 
