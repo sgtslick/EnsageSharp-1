@@ -13,11 +13,11 @@
     {
         #region Constants
 
-        private const Key FarmKey = Key.B;
+        private const Key FarmKey = Key.,;
 
-        private const Key ChaseKey = Key.Space;
+        private const Key ChaseKey = Key.Z;
 
-        private const Key KiteKey = Key.V;
+        private const Key KiteKey = Key./;
 
         #endregion
 
